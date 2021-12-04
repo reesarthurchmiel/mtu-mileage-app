@@ -1,0 +1,76 @@
+@import 'normalize.css';
+
+html, body {
+    padding: 0;
+    margin: 0;
+}
+
+*, :before, :after {
+    box-sizing: border-box;
+}
+
+body {
+    --background: #fff;
+    --accent: #0096C7;
+    --brown: hsl(27, 47%, 43%);
+    --pink: hsl(332, 16%, 52%);
+    
+    --text: hsl(57, 100%, 4%);
+
+    font-family: 'Open Sans', sans-serif;
+    font-size: 20px;
+    color: var(--text);
+    background-color: var(--background);
+    padding: 0 5vw;
+}
+
+.header {
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background);
+    text-decoration: var(--accent) underline;
+}
+
+.nav {
+    font-size: 20px;
+    padding: 0 20px
+}
+
+.nav_ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav_li {
+    display: inline-block;
+}
+
+.nav_li:not(:first-child) {
+    padding-left: 20px;
+}
+
+.nav_button {
+    font-size: 20px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+}
+
+.nav_button:after {
+    content: '';
+    background-color: var(--accent);
+    position: absolute;
+    left: 0px;
+    bottom: -3px;
+    height: 2px;
+    width: 100%;
+    transform: scaleX(0);
+    transition: transform 0.3s ease 0s;
+}
+
+.nav_button:hover:after, .nav_button.selected:after {
+    transform: scaleX(1);
+}
