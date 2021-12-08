@@ -1,0 +1,96 @@
+.logbox {
+    display: flex;
+    /* height: 70vh; */
+    /* min-height: 400px; */
+    --border-color: rgb(88, 88, 88);
+    border: 1px black solid;
+}
+
+.logbox_main {
+    flex-grow: 1;
+}
+
+.logbox_monthYearHeader {
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 0;
+    color: white;
+    background-color: #48CAE4;
+}
+
+.logbox_dateGrid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+}
+
+.logbox_dateGrid_header {
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logbox_dateGrid > div {
+    padding: 10px;
+}
+
+/* For the select divs */
+.logbox-no-padding {
+    padding: 0px !important;
+}
+
+.logbox_dateGrid > div:nth-child(even) {
+    border-left: 1px solid var(--border-color);
+}
+
+.logbox-next-month {
+    border-top: 1px solid var(--border-color);
+}
+
+.logbox_buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+
+    border-left: 1px solid var(--border-color);
+}
+
+.logbox_button {
+    width: 50px;
+    padding: 10px;
+    background-color: transparent;
+    border: none;
+
+    flex-grow: 1;
+}
+
+/* .floatingButton {
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+    margin: 0 0 0 20px;
+    position: relative;
+
+    /* background-color: white; *//*
+    background: rgb(255,255,255);
+    background: radial-gradient(circle, rgba(255,255,255,1) 57%, rgba(250,251,255,1) 80%, rgba(215,216,230,1) 100%);
+    border-radius: 50%;
+    border: 1px solid black;
+    
+} */
+
+/* .floatingButton::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: 0px 3px 5px 5px rgba(60, 60, 60, 0.1) ;
+} */
+
+.logbox_button:hover {
+    outline: 1px black solid;
+    background-color: #48CAE4;
+}
+
+.logbox_button > img {
+    width: 100%;
+}

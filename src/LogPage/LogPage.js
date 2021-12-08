@@ -1,11 +1,11 @@
 import './LogPage.css';
-import LineBox from './LineBox.js';
+import LogBox from './LogBox.js';
 
 function LogPage() {
     return (
         //Flex the div
         <div className='logpage'>
-            <LineBox />
+            <LogBox />
             {/* <div className="summary">Summary</div> */}
         </div>
     );
