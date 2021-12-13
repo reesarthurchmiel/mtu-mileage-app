@@ -1,5 +1,20 @@
 .places {
-    padding: 0 20px 0 0;
+    margin: 0 30px 0 0;
+}
+
+.placesgrid_loadingOverlay {
+    position: absolute;
+    z-index: 9999;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: white;
+    color: black;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .places_topHeader {
@@ -14,14 +29,15 @@
 }
 
 .placesgrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
 
-  border: 1px solid black;
-  border-top: none;
+    border: 1px solid black;
+    border-top: none;
 
-  --padding: 20px;
-  --border-color: rgb(88, 88, 88);
+    --padding: 20px;
+    --border-color: rgb(88, 88, 88);
 }
 
 .placesgrid_header {
@@ -62,7 +78,8 @@
     white-space: nowrap;
 }
 
-.placesgrid_row_item:nth-child(2), .placesgrid_header:nth-child(2) {
+/* div so the add place inputs doesn't get an extra border added */
+div.placesgrid_row_item:nth-child(2), .placesgrid_header:nth-child(2) {
     border-left: 1px solid var(--border-color);
     border-right: 1px solid var(--border-color);
 }
@@ -81,6 +98,10 @@
 }
 
 .placesgrid_row:hover > .placesgrid_buttonGroup {
+    opacity: 1;
+}
+
+.placesgrid_buttonGroup--show {
     opacity: 1;
 }
 

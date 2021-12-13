@@ -1,40 +1,59 @@
-import { sub, add, eachDayOfInterval, format, eachWeekOfInterval, startOfMonth, lastDayOfMonth, getWeekOfMonth, isSameMonth, startOfWeek, lastDayOfWeek, isSameYear, getYear, getDayOfYear } from 'date-fns';
+import {
+    getDate, getMonth,
+    sub, add, eachDayOfInterval, format, eachWeekOfInterval, startOfMonth, lastDayOfMonth, getWeekOfMonth, isSameMonth, startOfWeek, lastDayOfWeek, isSameYear, getYear, getDayOfYear
+} from 'date-fns';
 import React from 'react';
 import Select from 'react-select';
 
 import './LogBox.css';
-import apiHandler from '../ApiHandler.js';
+
 
 export default class LogBox extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleClick = this.handleClick.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
 
-        let now  = new Date();
+        let now = new Date();
         let week = startOfWeek(now);
 
         this.state = {
             week: week,
-            places: [],
-            logs: {},
+            selectsLoading: Array(7).fill(false),
         }
     }
 
-    componentDidMount() {
-        apiHandler.getPlaces().then(newPlaces => this.setState({
-            places: newPlaces,
-        }))
+    handleClick(delta) {
+        let newWeek = add(this.state.week, delta);
 
-        apiHandler.getLogs(getYear(this.state.week)).then(newLogs => this.setState({
-            logs: Object.assign({...this.state.logs}, newLogs),
-        }))
+        this.setState({
+            week: newWeek,
+        })
+
+        this.props.onWeekChange(newWeek);
     }
 
-    handleClick(delta) {
+    handleSelectChange(date, idx, newValue) {
+        let selectsLoading = this.state.selectsLoading.slice()
+        selectsLoading[idx] = true;
         this.setState({
-            week: add(this.state.week, delta),
+            selectsLoading: selectsLoading,
         })
+
+        if (newValue === null) {
+            this.props.apiFuncs.deleteLog(date).then(
+                () => this.setState({
+                    selectsLoading: Array(7).fill(false),
+                })
+            );
+        } else {
+            this.props.apiFuncs.updateLog(date, newValue.value).then(
+                () => this.setState({
+                    selectsLoading: Array(7).fill(false),
+                })
+            );
+        }
     }
 
     render() {
@@ -51,20 +70,25 @@ export default class LogBox extends React.Component {
                         <div className='logbox_dateGrid_header'>
                             Location
                         </div>
-                        <Week logs={this.state.logs} places={this.state.places} weekStart={this.state.week} />
+                        <Week logs={this.props.logs}
+                            places={this.props.places}
+                            weekStart={this.state.week}
+                            onChange={this.handleSelectChange}
+                            selectsLoading={this.state.selectsLoading}
+                            logsLoading={this.props.logsLoading} />
                     </div>
                 </div>
                 <div className='logbox_buttons'>
-                    <button className='logbox_button' onClick={() => this.handleClick({weeks: -4})}>
+                    <button className='logbox_button' onClick={() => this.handleClick({ weeks: -4 })}>
                         <img src="/icons/double-up-arrow.png" />
                     </button>
-                    <button className="logbox_button" onClick={() => this.handleClick({weeks: -1})}>
+                    <button className="logbox_button" onClick={() => this.handleClick({ weeks: -1 })}>
                         <img src="/icons/up-arrow.png" />
                     </button>
-                    <button className="logbox_button" onClick={() => this.handleClick({weeks: 1})}>
+                    <button className="logbox_button" onClick={() => this.handleClick({ weeks: 1 })}>
                         <img src="/icons/down-arrow.png" />
                     </button>
-                    <button className="logbox_button" onClick={() => this.handleClick({weeks: 4})}>
+                    <button className="logbox_button" onClick={() => this.handleClick({ weeks: 4 })}>
                         <img src="/icons/double-down-arrow.png" />
                     </button>
                 </div>
@@ -95,20 +119,26 @@ function Week(props) {
     let selectOptions = placesToOptions(places);
 
     let elms = [];
+    let key = 0;
     let prev = props.weekStart;
 
-    for (let day of getDaysOfWeek(props.weekStart)) {
+    for (const [idx, day] of getDaysOfWeek(props.weekStart).entries()) {
         let className = isSameMonth(day, prev) ? "" : "logbox-next-month";
         elms.push(
-            <div className={className}>
+            <div key={key++} className={className}>
                 {format(day, "EEEE do")}
             </div>
         )
-        elms.push(<div className={className + " logbox-no-padding"}>
-                    <PlaceSelect
-                        defaultValue={getSelectValue(getDayOfYear(day), getYear(day), logs)}
-                        options={selectOptions} />
-                  </div>)
+
+        elms.push(<div key={key++} className={className + " logbox-no-padding"}>
+            <LogSelect
+                value={getSelectValue(day, logs, places)}
+                options={selectOptions}
+                onChange={(newValue) => props.onChange(day, idx, newValue)}
+                loading={props.selectsLoading[idx]}
+                logsLoading={props.logsLoading}
+            />
+        </div>)
 
         prev = day;
     }
@@ -119,75 +149,77 @@ function Week(props) {
 function getDaysOfWeek(weekStart) {
     let days = []
 
-    for (let i=0; i < 7; i++) {
-        days.push(add(weekStart, {days: i}));
+    for (let i = 0; i < 7; i++) {
+        days.push(add(weekStart, { days: i }));
     }
 
     return days;
 }
 
 function placesToOptions(places) {
+    if (places === null) {
+        return []
+    }
+
     let options = [];
 
-    for (let place of places) {
-        options.push({value: place.name, label: place.name})
+    for (let place of places.values()) {
+        options.push({ value: place._id, label: place.name })
     }
 
     return options;
 }
 
-function getSelectValue(dayOfYear, year, logs) {
-    if (logs[year] && logs[year].hasOwnProperty(dayOfYear)) {
-        return {name: logs[year][dayOfYear], label: logs[year][dayOfYear]}
+function getSelectValue(date, logs, places) {
+    let logEntry = dateToLogEntry(date, logs);
+    if (logEntry) {
+        return { value: logEntry.placeId, label: places.get(logEntry.placeId).name }
     } else {
-        console.log(arguments)
         return null
     }
 }
 
-class PlaceSelect extends React.Component {
-    constructor(props) {
-        super(props);
+function dateToLogEntry(date, logs) {
+    let entry = format(date, "yyyy-MM-dd")
 
-        this.handleChange = this.handleChange.bind(this);
+    if (logs && logs.has(entry)) {
+        return logs.get(entry);
+    } else {
+        return null
+    }
+}
 
-        this.state = {
-            selectedValue: props.defaultValue,
-            options: props.options,
-        }
+function LogSelect(props) {
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            borderRadius: 0,
+            backgroundColor: "var(--background)",
+            width: "100%",
+            height: "100%",
+            border: "none",
+        }),
+
+        container: (provided) => ({
+            ...provided,
+            width: "100%",
+            height: "100%",
+        }),
+
+        dropdownIndicator: (provided, state) => ({
+            display: "none",
+        }),
+
+        indicatorSeparator: (provided, state) => ({
+            display: "none",
+        })
     }
 
-    handleChange(newValue) {
-        this.setState({selectedValue: newValue})
-    }
-
-    render() {
-        const customStyles = {
-            control: (provided) => ({
-                ...provided,
-                borderRadius: 0,
-                backgroundColor: "var(--background)",
-                width: "100%",
-                height: "100%",
-                border: "none",
-            }),
-        
-            container: (provided) => ({
-                ...provided,
-                width: "100%",
-                height: "100%",
-            }),
-
-            dropdownIndicator : (provided, state) => ({
-                display: "none",
-            }),
-
-            indicatorSeparator : (provided, state) => ({
-                display: "none",
-            })
-        }
-
-        return <Select value={this.state.selectedValue} placeholder="..." styles={customStyles} options={this.state.options} isClearable={true}
-                    onChange={this.handleChange} />
-    }
+    return <Select value={props.value}
+        placeholder="..."
+        styles={customStyles}
+        options={props.options}
+        isClearable={true}
+        onChange={props.onChange}
+        isLoading={props.loading || props.logsLoading} />
 }

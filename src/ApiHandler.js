@@ -1,30 +1,36 @@
 import axios from "axios";
 
 class ApiHandler {
-    constructor() {
-        this.placesCache = [];
-        this._dirty = false;
-    }
-
-    //Add place to cached response so it's available immediately?
-    isDirty() {
-        return this._dirty;
-    }
-
     getPlaces() {
         return axios.get("/places").then((response) => response.data);
     }
 
     getLogs(year) {
-        return Promise.resolve(
-            {
-                _id: 1,
-                2021: {
-                    341: "Langstone",
-                    343: "Blackwater",
-                }
-            }
-        );
+        return axios.get("/logs").then((response) => response.data);
+    }
+
+
+
+    updateLog(date, placeId) {
+        return axios.put("/logs/" + date, {
+            placeId: placeId,
+        })
+    }
+
+    deleteLog(date) {
+        return axios.delete("/logs/" + date)
+    }
+
+    savePlace(name, distanceFromBase, distanceFromHome) {
+        return axios.post("/places", {
+            name: name,
+            distanceFromBase: distanceFromBase,
+            distanceFromHome: distanceFromHome,
+        })
+    }
+
+    deletePlace(placeId) {
+        return axios.delete("/places/" + placeId.toString())
     }
 }
 
